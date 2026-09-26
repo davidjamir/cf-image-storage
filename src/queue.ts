@@ -13,7 +13,7 @@ export const processMessage = (payload: PayloadMessage, env: Env) => {
 
 	if (payload.saveFeaturedImage) {
 		const keyFeaturedImage = buildKey({ folder: `media/${payload.site.theme}/${siteKey}/featured/${payload.id}-`, slug: payload.slug });
-		featuredImage = payload.cdnHost + '/' + keyFeaturedImage;
+		featuredImage = 'https://' + payload.cdnHost + '/' + keyFeaturedImage;
 		messages.push({
 			method: 'GET',
 			url: payload.post.featuredImage,
@@ -22,7 +22,7 @@ export const processMessage = (payload: PayloadMessage, env: Env) => {
 	}
 	if (payload.saveSocialPoster) {
 		const keySocialPoster = buildKey({ folder: `media/${payload.site.theme}/${siteKey}/social/${payload.id}-`, slug: payload.slug });
-		socialPoster = payload.cdnHost + '/' + keySocialPoster;
+		socialPoster = 'https://' + payload.cdnHost + '/' + keySocialPoster;
 		messages.push({
 			method: 'POST',
 			url: env.ENDPOINT_SERVER_IMAGE_GENERATOR,
