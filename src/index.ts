@@ -63,6 +63,7 @@ export default {
 					options.headers = {
 						'Content-Type': 'application/json',
 						Authorization: `Bearer ${env.INTERNAL_SECRET}`,
+						'User-Agent': 'Request_Family/1.0',
 					};
 					options.body = JSON.stringify(message.payload);
 				}
