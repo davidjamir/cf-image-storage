@@ -7,14 +7,16 @@
 	"name": "cf-image-storage",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-09-25",
+	"workers_dev": true,
+	"preview_urls": false,
 	"observability": {
 		"enabled": true,
 	},
 	"r2_buckets": [
 		{
 			"binding": "IMAGE_BUCKET", // <~ valid JavaScript variable name
-			"bucket_name": "image-stored"
-		}
+			"bucket_name": "image-stored",
+		},
 	],
 	"queues": {
 		"consumers": [

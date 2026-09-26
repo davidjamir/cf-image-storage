@@ -1,26 +1,83 @@
+import { processMessage } from './queue';
+import { QueueMessage, PayloadMessage } from '../lib/types';
+
+const allowedMethods = ['POST'];
+
 export default {
-	// Our fetch handler is invoked on a HTTP request: we can send a message to a queue
-	// during (or after) a request.
-	// https://developers.cloudflare.com/queues/platform/javascript-apis/#producer
-	async fetch(req, env, ctx): Promise<Response> {
-		console.log(req)
-		// To send a message on a queue, we need to create the queue first
-		// https://developers.cloudflare.com/queues/get-started/#3-create-a-queue
-		await env.IMAGE_QUEUE.send({
-			url: req.url,
-			method: req.method,
-			headers: Object.fromEntries(req.headers),
-		});
-		return new Response('Sent message to the queue');
+	async fetch(request, env, ctx): Promise<Response> {
+		try {
+			// Athorization and Verification Method
+			if (!allowedMethods.includes(request.method)) {
+				return new Response('Method Not Allowed', {
+					status: 405,
+					headers: {
+						Allow: allowedMethods.join(', '),
+					},
+				});
+			}
+
+			const auth = request.headers.get('Authorization');
+			if (!auth?.startsWith('Bearer ')) {
+				return new Response('Unauthorized', { status: 401 });
+			}
+
+			const token = auth.slice(7);
+			if (token !== env.INTERNAL_SECRET) {
+				return new Response('Unauthorized', { status: 401 });
+			}
+
+			// Processing Message send to Queue
+
+			const payload: PayloadMessage = await request.json();
+
+			// Keep Gen Image Not Active
+			payload.saveSocialPoster = false;
+			const { messages, featuredImage, socialPoster } = processMessage(payload, env);
+
+			await Promise.all(messages.map((message) => env.IMAGE_QUEUE.send(message)));
+
+			return Response.json({
+				success: true,
+				message: 'Sent message to the queue',
+				featuredImage,
+				socialPoster,
+			});
+		} catch (error) {
+			return new Response('Failer', { status: 500 });
+		}
 	},
-	// The queue handler is invoked when a batch of messages is ready to be delivered
-	// https://developers.cloudflare.com/queues/platform/javascript-apis/#messagebatch
+
 	async queue(batch, env): Promise<void> {
-		// A queue consumer can make requests to other endpoints on the Internet,
-		// write to R2 object storage, query a D1 Database, and much more.
-		for (let message of batch.messages) {
-			// Process each message (we'll just log these)
-			console.log(`message ${message.id} processed: ${JSON.stringify(message.body)}`);
+		for (let msg of batch.messages) {
+			try {
+				const message: QueueMessage = msg.body as unknown as QueueMessage;
+
+				console.log(message);
+
+				const options: RequestInit = {
+					method: message.method,
+				};
+
+				if (message.method === 'POST') {
+					options.headers = {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${env.INTERNAL_SECRET}`,
+					};
+					options.body = JSON.stringify(message.payload);
+				}
+
+				const response = await fetch(message.url, options);
+
+				if (!response.ok || !response.body) {
+					throw new Error(`Failed to fetch image: ${response.status}`);
+				}
+
+				await env.IMAGE_BUCKET.put(message.key, response.body);
+
+				msg.ack();
+			} catch (error) {
+				msg.retry();
+			}
 		}
 	},
 } satisfies ExportedHandler<Env, Error>;
