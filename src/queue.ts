@@ -12,7 +12,7 @@ export const processMessage = (payload: PayloadMessage, env: Env) => {
 	const siteKey = payload.host.split('.')[0];
 
 	if (payload.saveFeaturedImage) {
-		const keyFeaturedImage = buildKey({ folder: `media/${siteKey}/featured/${payload.id}-`, slug: payload.slug });
+		const keyFeaturedImage = buildKey({ folder: `media/${payload.site.theme}/${siteKey}/featured/${payload.id}-`, slug: payload.slug });
 		featuredImage = payload.cdnHost + '/' + keyFeaturedImage;
 		messages.push({
 			method: 'GET',
@@ -21,7 +21,7 @@ export const processMessage = (payload: PayloadMessage, env: Env) => {
 		});
 	}
 	if (payload.saveSocialPoster) {
-		const keySocialPoster = buildKey({ folder: `media/${siteKey}/social/${payload.id}-`, slug: payload.slug });
+		const keySocialPoster = buildKey({ folder: `media/${payload.site.theme}/${siteKey}/social/${payload.id}-`, slug: payload.slug });
 		socialPoster = payload.cdnHost + '/' + keySocialPoster;
 		messages.push({
 			method: 'POST',

@@ -29,6 +29,7 @@ export default {
 			// Processing Message send to Queue
 
 			const payload: PayloadMessage = await request.json();
+			console.log(payload);
 
 			// Keep Gen Image Not Active
 			payload.saveSocialPoster = false;

@@ -18,6 +18,7 @@ export type PayloadMessage = {
 		host: string;
 		name: string;
 		entity?: string;
+		theme: string;
 		config: {
 			customOpengraphImage: boolean;
 			symbolOg: string;
