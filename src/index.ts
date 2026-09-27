@@ -29,7 +29,22 @@ export default {
 			// Processing Message send to Queue
 
 			const payload: PayloadMessage = await request.json();
-			console.log(payload);
+
+			// Checking link featured image
+			const response = await fetch(payload.post.featuredImage);
+			const contentType = response.headers.get('content-type');
+
+			if (!response.ok) {
+				throw new Error(`Failed to fetch image: ${response.status}`);
+			}
+
+			if (!response.body) {
+				throw new Error('Failed to fetch image: response body is empty');
+			}
+
+			if (!contentType?.startsWith('image/')) {
+				throw new Error(`Invalid content-type: ${contentType}`);
+			}
 
 			// Keep Gen Image Not Active
 			payload.saveSocialPoster = false;
@@ -44,7 +59,14 @@ export default {
 				socialPoster,
 			});
 		} catch (error) {
-			return new Response('Failer', { status: 500 });
+			const message = error instanceof Error ? error.message : String(error);
+			console.log(message);
+			return Response.json({
+				success: true,
+				message,
+				featuredImage: '',
+				socialPoster: '',
+			});
 		}
 	},
 
@@ -69,15 +91,39 @@ export default {
 				}
 
 				const response = await fetch(message.url, options);
+				const contentType = response.headers.get('content-type');
 
-				if (!response.ok || !response.body) {
-					throw new Error(`Failed to fetch image: ${response.status}`);
+				if (!response.ok) {
+					throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
+				}
+				if (!response.body) {
+					throw new Error('Fetch failed: response body is empty');
 				}
 
-				await env.IMAGE_BUCKET.put(message.key, response.body);
+				if (!contentType?.startsWith('image/')) {
+					throw new Error(`Invalid content-type: ${contentType}`);
+				}
+
+				const data = await response.arrayBuffer();
+				if (data.byteLength === 0) {
+					throw new Error('Response body is empty');
+				}
+
+				await env.IMAGE_BUCKET.put(message.key, data, {
+					httpMetadata: {
+						cacheControl: 'public, max-age=86400, s-maxage=31536000, immutable',
+					},
+					customMetadata: {
+						title: message.title ?? '',
+						description: message.description ?? '',
+					},
+				});
+				console.log('Saved Success: ', `https://${message.cdnHost}/${message.key}`);
 
 				msg.ack();
 			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error);
+				console.log('Retry Message', message);
 				msg.retry();
 			}
 		}

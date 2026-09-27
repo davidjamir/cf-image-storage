@@ -2,6 +2,9 @@ export type QueueMessage = {
 	method: 'GET' | 'POST';
 	url: string;
 	key: string;
+	cdnHost: string;
+	title: string;
+	description: string;
 	payload?: unknown;
 };
 

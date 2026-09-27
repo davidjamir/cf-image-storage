@@ -12,21 +12,33 @@ export const processMessage = (payload: PayloadMessage, env: Env) => {
 	const siteKey = payload.host.split('.')[0];
 
 	if (payload.saveFeaturedImage) {
-		const keyFeaturedImage = buildKey({ folder: `media/${payload.site.theme}/${siteKey}/featured/${payload.id}-`, slug: payload.slug });
+		const keyFeaturedImage = buildKey({
+			folder: `media/${payload.site.theme}/${siteKey}/featured/`,
+			slug: `${payload.slug}-${payload.id}`,
+		});
 		featuredImage = 'https://' + payload.cdnHost + '/' + keyFeaturedImage;
 		messages.push({
 			method: 'GET',
 			url: payload.post.featuredImage,
 			key: keyFeaturedImage,
+			cdnHost: payload.cdnHost,
+			title: payload.post.title,
+			description: payload.post.snippet,
 		});
 	}
 	if (payload.saveSocialPoster) {
-		const keySocialPoster = buildKey({ folder: `media/${payload.site.theme}/${siteKey}/social/${payload.id}-`, slug: payload.slug });
+		const keySocialPoster = buildKey({
+			folder: `media/${payload.site.theme}/${siteKey}/social/`,
+			slug: `${payload.slug}-${payload.id}`,
+		});
 		socialPoster = 'https://' + payload.cdnHost + '/' + keySocialPoster;
 		messages.push({
 			method: 'POST',
 			url: env.ENDPOINT_SERVER_IMAGE_GENERATOR,
 			key: keySocialPoster,
+			cdnHost: payload.cdnHost,
+			title: payload.post.title,
+			description: payload.post.snippet,
 			payload: {
 				site: payload.site,
 				post: payload.post,
