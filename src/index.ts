@@ -47,8 +47,7 @@ export default {
 			}
 
 			// Keep Gen Image Not Active
-			payload.saveSocialPoster = false;
-			const { messages, featuredImage, socialPoster } = processMessage(payload, env);
+			const { messages, featuredImage, socialPoster } = processMessage(payload, env.ENDPOINT_SERVER_IMAGE_GENERATOR);
 
 			await Promise.all(messages.map((message) => env.IMAGE_QUEUE.send(message)));
 
@@ -74,8 +73,7 @@ export default {
 		for (let msg of batch.messages) {
 			try {
 				const message: QueueMessage = msg.body as unknown as QueueMessage;
-
-				console.log(message);
+				console.log('Message: ', { url: message.url, key: `https://${message.cdnHost}/${message.key}` });
 
 				const options: RequestInit = {
 					method: message.method,
@@ -118,7 +116,7 @@ export default {
 						description: message.description ?? '',
 					},
 				});
-				console.log('Saved Success: ', `https://${message.cdnHost}/${message.key}`);
+				console.log('Saved Success');
 
 				msg.ack();
 			} catch (error) {

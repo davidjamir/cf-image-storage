@@ -14,7 +14,6 @@ export type PayloadMessage = {
 	host: string;
 	cdnHost: string;
 	slug: string;
-	segment: string;
 	saveFeaturedImage: boolean;
 	saveSocialPoster: boolean;
 	site: {
@@ -32,6 +31,7 @@ export type PayloadMessage = {
 	post: {
 		title: string;
 		snippet: string;
+		segment: string;
 		featuredImage: string;
 		author: string;
 	};

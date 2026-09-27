@@ -5,7 +5,7 @@ export const buildKey = ({ folder, slug }: { folder: string; slug: string }) => 
 	return folder + slug + typeImage;
 };
 
-export const processMessage = (payload: PayloadMessage, env: Env) => {
+export const processMessage = (payload: PayloadMessage, endpoint: string) => {
 	const messages: QueueMessage[] = [];
 	let featuredImage = '';
 	let socialPoster = '';
@@ -34,7 +34,7 @@ export const processMessage = (payload: PayloadMessage, env: Env) => {
 		socialPoster = 'https://' + payload.cdnHost + '/' + keySocialPoster;
 		messages.push({
 			method: 'POST',
-			url: env.ENDPOINT_SERVER_IMAGE_GENERATOR,
+			url: endpoint,
 			key: keySocialPoster,
 			cdnHost: payload.cdnHost,
 			title: payload.post.title,
