@@ -52,6 +52,10 @@ export const processMessage = (
 		});
 		featuredImage = 'https://' + payload.cdnHost + '/' + keyFeaturedImage;
 
+		/* Dùng filter này nếu cần crop featured image origin theo dạng 4:5 luôn
+		const filter = 'w-1080,h-1350,fo-person,f-webp,q-85';
+		 */
+
 		const url = buildImagekitProxyUrl({
 			originUrl: payload.post.featuredImage,
 			imagekitProxyId,
