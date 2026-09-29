@@ -4,7 +4,6 @@ export type QueueMessage = {
 	key: string;
 	cdnHost: string;
 	title: string;
-	description: string;
 	payload?: unknown;
 };
 
@@ -15,6 +14,7 @@ export type PayloadMessage = {
 	cdnHost: string;
 	slug: string;
 	saveFeaturedImage: boolean;
+	saveThumbnailImage: boolean;
 	saveSocialPoster: boolean;
 	site: {
 		host: string;

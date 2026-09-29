@@ -4,7 +4,7 @@ import { QueueMessage, PayloadMessage } from '../lib/types';
 const allowedMethods = ['POST'];
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
+	async fetch(request, env): Promise<Response> {
 		try {
 			// Athorization and Verification Method
 			if (!allowedMethods.includes(request.method)) {
@@ -47,7 +47,12 @@ export default {
 			}
 
 			// Keep Gen Image Not Active
-			const { messages, featuredImage, socialPoster } = processMessage(payload, env.ENDPOINT_SERVER_IMAGE_GENERATOR);
+			const { messages, featuredImage, thumbnailImage, socialPoster } = processMessage(
+				payload,
+				env.ENDPOINT_SERVER_IMAGE_GENERATOR,
+				env.IMAGE_PROCESSOR_IMAGEKIT_PROXY_ID,
+				env.IMAGE_PROCESSOR_CLOUDINARY_PROXY_ID,
+			);
 
 			await Promise.all(messages.map((message) => env.IMAGE_QUEUE.send(message)));
 
@@ -55,6 +60,7 @@ export default {
 				success: true,
 				message: 'Sent message to the queue',
 				featuredImage,
+				thumbnailImage,
 				socialPoster,
 			});
 		} catch (error) {
@@ -113,7 +119,6 @@ export default {
 					},
 					customMetadata: {
 						title: message.title ?? '',
-						description: message.description ?? '',
 					},
 				});
 				console.log('Saved Success');
